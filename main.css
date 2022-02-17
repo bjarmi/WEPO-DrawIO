@@ -1,0 +1,22 @@
+header {
+    background-color: indianred;
+    border-bottom: solid 3px;
+}
+
+nav {
+    background-color: aliceblue;
+    border-right: solid 3px;
+}
+
+.btn {
+    margin-bottom: 3px;
+    margin-top: 3px;
+}
+
+main {
+    height: 100vh;
+}
+
+canvas {
+
+}
