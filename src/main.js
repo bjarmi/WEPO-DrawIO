@@ -1,4 +1,4 @@
-import {Square, Pen, Point} from "./drawing_objects.js";
+import {PenStroke, Line, Square, Point} from "./drawing_objects.js";
 
 
 const canvas = {
@@ -69,7 +69,7 @@ const canvas = {
      * the new drawing object.
      */
     initialize_drawing(event) {
-        canvas.new_drawing = new Pen(
+        canvas.new_drawing = new PenStroke(
             canvas.ctx,
             canvas.get_mouse_position(event),
             3,

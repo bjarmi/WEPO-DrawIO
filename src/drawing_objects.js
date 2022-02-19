@@ -25,20 +25,21 @@ function Point(x, y) {
 function DrawingObject(ctx, point, line_width, colour) {
     this.ctx = ctx;
     this.point = point;
-    this.line_width = line_width;
-    this.colour = colour;
+
+    this.ctx.strokeStyle = colour;
+    this.ctx.lineWidth = line_width;
 }
 
 /**
  * An object handling the drawing with a Pen.
- * @param ctx {CanvasRenderingContext2D} The canvas context that this object
+ * @param ctx {CanvasRenderingContext2D} The canvas context that the pen stroke
  *        should be drawn onto.
- * @param point {Point} Position of the drawing object.
- * @param line_width {number} Line width of the drawing object.
- * @param colour {string} Colour of the Drawing Object in hex code or name
- *        of the color ("yellow").
+ * @param point {Point} Starting position of the pen stroke.
+ * @param line_width {number} Width of the pen stroke.
+ * @param colour {string} Colour of the pen stroke in hex code or name of
+ *        the color ("yellow").
  */
-function Pen(ctx, point, line_width, colour) {
+function PenStroke(ctx, point, line_width, colour) {
     this.super = new DrawingObject(ctx, point, line_width, colour);
     this.stroke = [point];
 
@@ -56,7 +57,6 @@ function Pen(ctx, point, line_width, colour) {
      * @param line_len {number} Length of the line array.
      */
     this.draw_new_line = function (line_len) {
-        this.super.ctx.lineWidth = this.super.line_width;
         this.super.ctx.beginPath();
 
         this.super.ctx.moveTo(
@@ -76,7 +76,6 @@ function Pen(ctx, point, line_width, colour) {
      * Draws the whole stroke to its canvas context.
      */
     this.draw = function () {
-        this.super.ctx.lineWidth = this.super.line_width;
         this.super.ctx.beginPath();
         for (let i = 0; i < this.stroke.length - 1; i++) {
             this.super.ctx.moveTo(this.stroke[i].x, this.stroke[i].y);
@@ -89,23 +88,57 @@ function Pen(ctx, point, line_width, colour) {
 }
 
 /**
- *  An object handling the drawing of a square.
- * @param ctx {CanvasRenderingContext2D} The canvas context that this object
+ * An object handling the drawing of a line.
+ * @param ctx {CanvasRenderingContext2D} The canvas context that the line
  *        should be drawn onto.
- * @param point {Point} Position of the drawing object.
- * @param width {number} Width of the square.
- * @param height {number} Height of the square.
- * @param line_width {number} Line width of the drawing object.
- * @param colour {string} Colour of the Drawing Object in hex code or name
- *        of the color ("yellow").
+ * @param point {Point} Starting position of the line.
+ * @param line_width {number} Width of the line.
+ * @param colour {string} Colour of the line in hex code or name of the
+ * color ("yellow").
  */
-function Square(ctx, point, width, height, line_width, colour) {
-    this.super = new DrawingObject(
-        ctx, point, line_width, colour
-    );
+function Line(ctx, point, line_width, colour) {
+    this.super = new DrawingObject(ctx, point, line_width, colour);
+    this.end_of_line = null;
 
-    this.width = width;
-    this.height = height;
+    /**
+     * Update the length and angle of the line.
+     * @param point {Point} Point representing end of the line.
+     */
+    this.update = function (point) {
+        this.end_of_line = point;
+        this.draw();
+    }
+
+    /**
+     * Draw the line onto its canvas context.
+     */
+    this.draw = function () {
+        const start_of_line = this.super.point;
+
+        this.super.ctx.beginPath();
+
+        this.super.ctx.moveTo(start_of_line.x, start_of_line.y);
+        this.super.ctx.lineTo(this.end_of_line.x, this.end_of_line.y)
+
+        this.super.ctx.stroke();
+        this.super.ctx.closePath();
+    }
+}
+
+/**
+ *  An object handling the drawing of a square.
+ * @param ctx {CanvasRenderingContext2D} The canvas context that the square
+ *        should be drawn onto.
+ * @param point {Point} Starting position of the square.
+ * @param line_width {number} Outline width of the square.
+ * @param colour {string} Colour of the square in hex code or name of the
+ *        color ("yellow").
+ */
+function Square(ctx, point, line_width, colour) {
+    this.super = new DrawingObject(ctx, point, line_width, colour);
+
+    this.width = 0;
+    this.height = 0;
 
     this.set_width = function (width) {
         this.width = width
@@ -120,13 +153,8 @@ function Square(ctx, point, width, height, line_width, colour) {
      * position)
      */
     this.update = function (point) {
-        this.set_width(
-            point.x - this.super.point.x
-        );
-        this.set_height(
-            point.y - this.super.point.y
-        );
-
+        this.set_width(point.x - this.super.point.x);
+        this.set_height(point.y - this.super.point.y);
         this.draw();
     }
 
@@ -134,8 +162,6 @@ function Square(ctx, point, width, height, line_width, colour) {
      * Draws the square to its canvas context.
      */
     this.draw = function () {
-        this.super.ctx.strokeStyle = this.super.colour;
-        this.super.ctx.lineWidth = this.super.line_width;
         this.super.ctx.strokeRect(
             this.super.point.x,
             this.super.point.y,
@@ -146,4 +172,4 @@ function Square(ctx, point, width, height, line_width, colour) {
     }
 }
 
-export {Square, Pen, Point};
+export {PenStroke, Line, Square, Point};
