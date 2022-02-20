@@ -48,28 +48,8 @@ function PenStroke(ctx, point, line_width, colour) {
      * @param point {Point}
      */
     this.update = function (point) {
-        const line_len = this.stroke.push(point);
-        this.draw_new_line(line_len);
-    }
-
-    /**
-     * Draws a new line from the last two points of the stroke.
-     * @param line_len {number} Length of the line array.
-     */
-    this.draw_new_line = function (line_len) {
-        this.super.ctx.beginPath();
-
-        this.super.ctx.moveTo(
-            this.stroke[line_len-2].x,
-            this.stroke[line_len-2].y
-        )
-        this.super.ctx.lineTo(
-            this.stroke[line_len-1].x,
-            this.stroke[line_len-1].y
-        )
-
-        this.super.ctx.stroke();
-        this.super.ctx.closePath();
+        this.stroke.push(point);
+        this.draw();
     }
 
     /**
@@ -126,6 +106,54 @@ function Line(ctx, point, line_width, colour) {
 }
 
 /**
+ *  An object handling the drawing of a circle.
+ * @param ctx {CanvasRenderingContext2D} The canvas context that the circle
+ *        should be drawn onto.
+ * @param point {Point} Starting position of the circle.
+ * @param line_width {number} Outline width of the circle.
+ * @param colour {string} Colour of the circle in hex code or name of the
+ *        color ("yellow").
+ */
+function Circle(ctx, point, line_width, colour) {
+    this.super = new DrawingObject(ctx, point, line_width, colour);
+    this.midpoint = null;
+    this.radius = null;
+
+    /**
+     * Update the size of the circle.
+     * @param point {Point} Point used to calculate the size of the circle.
+     */
+    this.update = function (point) {
+        const width = point.x - this.super.point.x;
+        const height = point.y - this.super.point.y;
+
+        this.radius = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2)) / 2;
+
+        this.midpoint = new Point(
+            (this.super.point.x + point.x) / 2,
+            (this.super.point.y + point.y) / 2
+        )
+        this.draw();
+    }
+
+    /**
+     * Draw the circle onto its canvas context.
+     */
+    this.draw = function () {
+        this.super.ctx.beginPath();
+        this.super.ctx.arc(
+            this.midpoint.x,
+            this.midpoint.y,
+            this.radius,
+            0,
+            Math.PI * 2
+        );
+        this.super.ctx.stroke();
+        this.super.ctx.closePath();
+    }
+}
+
+/**
  *  An object handling the drawing of a square.
  * @param ctx {CanvasRenderingContext2D} The canvas context that the square
  *        should be drawn onto.
@@ -159,7 +187,7 @@ function Square(ctx, point, line_width, colour) {
     }
 
     /**
-     * Draws the square to its canvas context.
+     * Draws the square onto its canvas context.
      */
     this.draw = function () {
         this.super.ctx.strokeRect(
@@ -172,4 +200,4 @@ function Square(ctx, point, line_width, colour) {
     }
 }
 
-export {PenStroke, Line, Square, Point};
+export {PenStroke, Line, Circle, Square, Point};
