@@ -1,4 +1,12 @@
-import {PenStroke, Line, Circle, Square, Point, TextDraw} from "./drawing_objects.js";
+import {
+    Point,
+    Move,
+    PenStroke,
+    Line,
+    Circle,
+    Square,
+    TextDraw
+} from "./drawing_objects.js";
 
 
 const canvas = {
@@ -23,8 +31,20 @@ const canvas = {
         canvas.add_events();
     },
 
+    initiate_tool (event) {
+        if (canvas.current_tool === Move) {
+            canvas.new_drawing = new Move(
+                canvas.get_mouse_position(event),
+                canvas.drawn_objects
+            );
+            canvas.element.on('mousemove', canvas.update_drawing);
+        }
+        else
+            canvas.start_drawing(event);
+    },
+
     add_events() {
-        canvas.element.on('mousedown', canvas.start_drawing);
+        canvas.element.on('mousedown', canvas.initiate_tool);
         canvas.element.on('mouseup', canvas.stop_drawing);
 
         $('#undo').on('click', canvas.undo);
@@ -114,6 +134,7 @@ const canvas = {
      * @param event {MouseEvent} Event object used to get the position
      */
     stop_drawing(event) {
+        canvas.new_drawing.finalize();
         canvas.element.off('mousemove', this.update_drawing);
         canvas.drawn_objects.push(canvas.new_drawing);
         canvas.new_drawing = null;
@@ -183,13 +204,16 @@ const canvas = {
     }
 }
 
-const tool_box = {
-    'pen': PenStroke,
-    'line': Line,
-    'circle': Circle,
-    'square': Square,
-    'move': null   // TODO: Add functionality for moving objects.
-}
+
+const tool_box = Object.freeze(
+    {
+        'pen': PenStroke,
+        'line': Line,
+        'circle': Circle,
+        'square': Square,
+        'move': Move
+    }
+)
 
 const switch_tool = (button) => {
     $('#tools').find('.active').removeClass('active');
