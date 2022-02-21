@@ -244,4 +244,15 @@ $('.color-btn').click(function () {
     $('#color').text($(this).attr('id'));
 });
 
+$('.fa-download').click(function () {
+    localStorage.setItem('mycanvas', JSON.stringify(canvas.drawn_objects));
+    console.log(JSON.stringify(canvas.drawn_objects));
+});
+
+$('.fa-upload').click(function () {
+    canvas.drawn_objects = JSON.parse(localStorage.getItem('mycanvas'));
+    console.log(canvas.drawn_objects);
+    canvas.redraw_objects();
+});
+
 canvas.init('#canvas');
