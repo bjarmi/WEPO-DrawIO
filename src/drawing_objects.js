@@ -205,7 +205,7 @@ function Square(ctx, point, line_width, colour) {
  * @param ctx {CanvasRenderingContext2D} The canvas context that the text
  *        should be drawn onto.
  * @param point {Point} Starting position of the text.
- * @param line_width {number} Outline width of the text.
+ * @param line_width {string} Outline width of the text.
  * @param colour {string} Colour of the text in hex code or name of the
  *        color ("yellow").
  * @param font {string} a string that tells the size and the font name "48px arial".
@@ -214,12 +214,20 @@ function Square(ctx, point, line_width, colour) {
 function TextDraw(ctx, point, line_width, colour, font, textstring) {
     this.ctx = ctx;
     this.point = new Point(50, 50);
-    this.line_width = line_width;
-    this.ctx.color = colour;
-    this.ctx.font = font;
+    this.line_width = parseInt(line_width);
+    this.px_size = this.line_width * 24;
+    this.ctx.strokeStyle = colour.toLowerCase();
+    this.ctx.font = this.px_size + 'px ' + font;
     this.textstring = textstring;
+    console.log(this.ctx.font);
+    console.log(this.ctx.strokeStyle);
+    console.log(this.ctx.font);
 
-
+    this.update = function (point) {
+        this.point.x = point.x;
+        this.point.y = point.y;
+        this.draw();
+    }
 
 
     /**

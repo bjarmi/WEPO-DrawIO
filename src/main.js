@@ -170,12 +170,12 @@ const canvas = {
 
         canvas.reset_redo();
 
-        canvas.new_drawing = new canvas.current_tool(
+        canvas.new_drawing = new TextDraw(
             canvas.ctx,
             canvas.get_mouse_position(event),
-            3,
-            'black',
-            '48px arial',
+            $('#size').text(),
+            $('#color').text(),
+            $('#font').text(),
             text
         )
         canvas.new_drawing.draw()
@@ -188,7 +188,6 @@ const tool_box = {
     'line': Line,
     'circle': Circle,
     'square': Square,
-    'text': TextDraw,  // TODO: Add functionality for drawing text.
     'move': null   // TODO: Add functionality for moving objects.
 }
 
@@ -203,5 +202,17 @@ $("#tools").find('.btn').click(function () {
     switch_tool(this);
 });
 
+
+$('.font-btn').click(function () {
+    $('#font').text($(this).attr('id'));
+});
+
+$('.size-btn').click(function () {
+    $('#size').text($(this).attr('id'));
+});
+
+$('.color-btn').click(function () {
+    $('#color').text($(this).attr('id'));
+});
 
 canvas.init('#canvas');
