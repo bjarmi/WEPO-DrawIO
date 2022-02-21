@@ -1,4 +1,4 @@
-import {PenStroke, Line, Circle, Square, Point} from "./drawing_objects.js";
+import {PenStroke, Line, Circle, Square, Point, TextDraw} from "./drawing_objects.js";
 
 
 const canvas = {
@@ -30,6 +30,7 @@ const canvas = {
         $('#undo').on('click', canvas.undo);
         $('#redo').on('click', canvas.redo);
         $('#confirm-trash').on('click', canvas.trash);
+        $('#text').on('click', canvas.textbox);
     },
 
     /**
@@ -89,7 +90,8 @@ const canvas = {
             canvas.ctx,
             canvas.get_mouse_position(event),
             3,
-            'black'
+            'black',
+            '48px arial'
         )
         canvas.element.on('mousemove', canvas.update_drawing);
     },
@@ -158,6 +160,26 @@ const canvas = {
     reset_redo() {
         $('#redo').addClass('disabled');
         canvas.removed_objects = [];
+    },
+    textbox() {
+        let text = prompt('Enter the text you want');
+        if (!canvas.drawn_objects.length) {
+            $('#undo').removeClass('disabled');
+            $('#trash').removeClass('disabled');
+        }
+
+        canvas.reset_redo();
+
+        canvas.new_drawing = new canvas.current_tool(
+            canvas.ctx,
+            canvas.get_mouse_position(event),
+            3,
+            'black',
+            '48px arial',
+            text
+        )
+        canvas.new_drawing.draw()
+
     }
 }
 
@@ -166,7 +188,7 @@ const tool_box = {
     'line': Line,
     'circle': Circle,
     'square': Square,
-    'text': null,  // TODO: Add functionality for drawing text.
+    'text': TextDraw,  // TODO: Add functionality for drawing text.
     'move': null   // TODO: Add functionality for moving objects.
 }
 

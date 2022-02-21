@@ -200,4 +200,39 @@ function Square(ctx, point, line_width, colour) {
     }
 }
 
-export {PenStroke, Line, Circle, Square, Point};
+/**
+ *  An object handling the drawing of a square.
+ * @param ctx {CanvasRenderingContext2D} The canvas context that the text
+ *        should be drawn onto.
+ * @param point {Point} Starting position of the text.
+ * @param line_width {number} Outline width of the text.
+ * @param colour {string} Colour of the text in hex code or name of the
+ *        color ("yellow").
+ * @param font {string} a string that tells the size and the font name "48px arial".
+ * @param textstring {string} The input string from the user to be drawn.
+ */
+function TextDraw(ctx, point, line_width, colour, font, textstring) {
+    this.ctx = ctx;
+    this.point = new Point(50, 50);
+    this.line_width = line_width;
+    this.ctx.color = colour;
+    this.ctx.font = font;
+    this.textstring = textstring;
+
+
+
+
+    /**
+     * Draws the text onto its canvas context.
+     */
+    this.draw = function () {
+        this.ctx.fillText(
+            this.textstring,
+            this.point.x,
+            this.point.y
+        );
+    }
+}
+
+
+export {PenStroke, Line, Circle, Square, Point, TextDraw};
