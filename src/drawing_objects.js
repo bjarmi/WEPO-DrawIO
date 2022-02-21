@@ -129,10 +129,18 @@ function PenStroke(ctx, point, line_width, colour) {
         let highest_y = this.super.point.y;
 
         this.stroke.forEach(point => {
-                lowest_x = point.x < lowest_x ? point.x : lowest_x;
-                lowest_y = point.y < lowest_y ? point.y : lowest_y;
-                highest_x = point.x > highest_x ? point.x : highest_x;
-                highest_y = point.y > highest_y ? point.y : highest_y;
+                lowest_x = point.x < lowest_x
+                    ? point.x
+                    : lowest_x;
+                lowest_y = point.y < lowest_y
+                    ? point.y
+                    : lowest_y;
+                highest_x = point.x > highest_x
+                    ? point.x
+                    : highest_x;
+                highest_y = point.y > highest_y
+                    ? point.y
+                    : highest_y;
             }
         )
 
@@ -187,20 +195,20 @@ function Line(ctx, point, line_width, colour) {
 
     this.finalize = function () {
         const top_left = new Point(
-            this.super.point.x < this.end_of_line.x ?
-                this.super.point.x :
-                this.end_of_line.x,
-            this.super.point.y < this.end_of_line.y ?
-                this.super.point.y :
-                this.end_of_line.y,
+            this.super.point.x < this.end_of_line.x
+                ? this.super.point.x
+                : this.end_of_line.x,
+            this.super.point.y < this.end_of_line.y
+                ? this.super.point.y
+                : this.end_of_line.y,
         );
         const bottom_right = new Point(
-            this.super.point.x > this.end_of_line.x ?
-                this.super.point.x :
-                this.end_of_line.x,
-            this.super.point.y > this.end_of_line.y ?
-                this.super.point.y :
-                this.end_of_line.y,
+            this.super.point.x > this.end_of_line.x
+                ? this.super.point.x
+                : this.end_of_line.x,
+            this.super.point.y > this.end_of_line.y
+                ? this.super.point.y
+                : this.end_of_line.y,
         );
         this.super.drawing_frame = new Frame(top_left, bottom_right);
     }
