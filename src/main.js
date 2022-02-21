@@ -4,8 +4,9 @@ import {PenStroke, Line, Circle, Square, Point} from "./drawing_objects.js";
 const canvas = {
     'element': null,
     'ctx': null,
-    'current_tool': null,
+    'current_tool': PenStroke,
     'new_drawing': null,
+    'removed_objects': [],
     'drawn_objects': [],
 
     /**
@@ -19,8 +20,16 @@ const canvas = {
         $(window).on('resize', this.resize);
         canvas.resize();
 
-        canvas.element.on('mousedown', canvas.initialize_drawing);
-        canvas.element.on('mouseup', canvas.finish_drawing);
+        canvas.add_events();
+    },
+
+    add_events() {
+        canvas.element.on('mousedown', canvas.start_drawing);
+        canvas.element.on('mouseup', canvas.stop_drawing);
+
+        $('#undo').on('click', canvas.undo);
+        $('#redo').on('click', canvas.redo);
+        $('#confirm-trash').on('click', canvas.trash);
     },
 
     /**
@@ -68,8 +77,15 @@ const canvas = {
      * @param event {MouseEvent} Event object used to get the position for
      * the new drawing object.
      */
-    initialize_drawing(event) {
-        canvas.new_drawing = new Circle(
+    start_drawing(event) {
+        if (!canvas.drawn_objects.length) {
+            $('#undo').removeClass('disabled');
+            $('#trash').removeClass('disabled');
+        }
+
+        canvas.reset_redo();
+
+        canvas.new_drawing = new canvas.current_tool(
             canvas.ctx,
             canvas.get_mouse_position(event),
             3,
@@ -95,24 +111,75 @@ const canvas = {
      * Finish the new drawing.
      * @param event {MouseEvent} Event object used to get the position
      */
-    finish_drawing(event) {
+    stop_drawing(event) {
         canvas.element.off('mousemove', this.update_drawing);
         canvas.drawn_objects.push(canvas.new_drawing);
         canvas.new_drawing = null;
+    },
+
+    undo() {
+        if (!canvas.removed_objects.length)
+            $('#redo').removeClass('disabled');
+
+        const removed_object = canvas.drawn_objects.pop();
+        canvas.removed_objects.push(removed_object);
+
+        canvas.clear_canvas();
+        canvas.redraw_objects();
+
+        if (!canvas.drawn_objects.length)
+            $('#undo').addClass('disabled');
+    },
+
+    redo() {
+        if (!canvas.drawn_objects.length)
+            $('#undo').removeClass('disabled');
+
+        const removed_object = canvas.removed_objects.pop();
+        canvas.drawn_objects.push(removed_object);
+
+        canvas.clear_canvas();
+        canvas.redraw_objects();
+
+        if (!canvas.removed_objects.length)
+            $('#redo').addClass('disabled');
+    },
+
+    trash() {
+        canvas.drawn_objects = [];
+        canvas.removed_objects = [];
+        canvas.clear_canvas();
+
+        $('#undo').addClass('disabled');
+        $('#redo').addClass('disabled');
+        $('#trash').addClass('disabled');
+    },
+
+    reset_redo() {
+        $('#redo').addClass('disabled');
+        canvas.removed_objects = [];
     }
 }
 
-
-let history = {}
+const tool_box = {
+    'pen': PenStroke,
+    'line': Line,
+    'circle': Circle,
+    'square': Square,
+    'text': null,  // TODO: Add functionality for drawing text.
+    'move': null   // TODO: Add functionality for moving objects.
+}
 
 const switch_tool = (button) => {
     $('#tools').find('.active').removeClass('active');
     $(button).addClass('active');
-}
 
+    canvas.current_tool = tool_box[$(button).attr('id')];
+}
 
 $("#tools").find('.btn').click(function () {
     switch_tool(this);
 });
+
 
 canvas.init('#canvas');
