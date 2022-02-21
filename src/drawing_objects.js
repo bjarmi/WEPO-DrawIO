@@ -8,9 +8,60 @@ function Point(x, y) {
     this.x = x;
     this.y = y;
 
-    this.print = function () {
-        console.log(`x: ${this.x}, y: ${this.y}`);
+    this.add = function (point) {
+        this.x += point.x;
+        this.y += point.y;
     }
+}
+
+function Frame(top_left, bottom_right) {
+    this.top_left = top_left;
+    this.bottom_right = bottom_right;
+
+    this.contains_point = function (point) {
+        const grater_then_top_left =
+            (this.top_left.x < point.x) && (this.top_left.y < point.y);
+
+        const less_then_bottom_right =
+            (this.bottom_right.x > point.x) && (this.bottom_right.y > point.y);
+
+        return (grater_then_top_left && less_then_bottom_right);
+    }
+}
+
+function Move(point, drawn_objects) {
+    this.oroginal_position = point;
+    this.curser_pos = point;
+    this.drawing_object = null;
+
+    // Check what drawing object the user wants to move.
+    for (let i = drawn_objects.length - 1; i >= 0; i--) {
+        let drawing_object = drawn_objects[i];
+
+        // Ignoring Move objects.
+        if (drawing_object.constructor.name === "Move")
+            continue;
+
+        if (drawing_object.super.drawing_frame.contains_point(
+            this.curser_pos
+        )) {
+            this.drawing_object = drawing_object;
+            break;
+        }
+    }
+
+    this.draw = function (){}  // Is called in canvas.redraw_objects.
+
+    this.update = function (point) {
+        const vector = new Point(
+            point.x - this.curser_pos.x,
+            point.y - this.curser_pos.y
+        );
+        this.curser_pos = point;
+        this.drawing_object.move(vector);
+
+    }
+    this.finalize = function () { this.drawing_object.finalize()}
 }
 
 /**
@@ -28,6 +79,8 @@ function DrawingObject(ctx, point, line_width, colour) {
 
     this.ctx.strokeStyle = colour;
     this.ctx.lineWidth = line_width;
+
+    this.drawing_frame = new Frame(point, point);
 }
 
 /**
@@ -59,12 +112,43 @@ function PenStroke(ctx, point, line_width, colour) {
         this.super.ctx.beginPath();
         for (let i = 0; i < this.stroke.length - 1; i++) {
             this.super.ctx.moveTo(this.stroke[i].x, this.stroke[i].y);
-            this.super.ctx.lineTo(this.stroke[i+1].x, this.stroke[i+1].y);
+            this.super.ctx.lineTo(this.stroke[i + 1].x, this.stroke[i + 1].y);
         }
         this.super.ctx.stroke();
         this.super.ctx.closePath();
     }
 
+    this.move = function (vector) {
+        this.stroke.forEach(point => point.add(vector));
+    }
+
+    this.finalize = function () {
+        let lowest_x = this.super.point.x;
+        let lowest_y = this.super.point.y;
+        let highest_x = this.super.point.x;
+        let highest_y = this.super.point.y;
+
+        this.stroke.forEach(point => {
+                lowest_x = point.x < lowest_x
+                    ? point.x
+                    : lowest_x;
+                lowest_y = point.y < lowest_y
+                    ? point.y
+                    : lowest_y;
+                highest_x = point.x > highest_x
+                    ? point.x
+                    : highest_x;
+                highest_y = point.y > highest_y
+                    ? point.y
+                    : highest_y;
+            }
+        )
+
+        const top_left = new Point(lowest_x, lowest_y);
+        const bottom_right = new Point(highest_x, highest_y);
+
+        this.super.drawing_frame = new Frame(top_left, bottom_right);
+    }
 }
 
 /**
@@ -102,6 +186,31 @@ function Line(ctx, point, line_width, colour) {
 
         this.super.ctx.stroke();
         this.super.ctx.closePath();
+    }
+
+    this.move = function (vector) {
+        this.super.point.add(vector);
+        this.end_of_line.add(vector);
+    }
+
+    this.finalize = function () {
+        const top_left = new Point(
+            this.super.point.x < this.end_of_line.x
+                ? this.super.point.x
+                : this.end_of_line.x,
+            this.super.point.y < this.end_of_line.y
+                ? this.super.point.y
+                : this.end_of_line.y,
+        );
+        const bottom_right = new Point(
+            this.super.point.x > this.end_of_line.x
+                ? this.super.point.x
+                : this.end_of_line.x,
+            this.super.point.y > this.end_of_line.y
+                ? this.super.point.y
+                : this.end_of_line.y,
+        );
+        this.super.drawing_frame = new Frame(top_left, bottom_right);
     }
 }
 
@@ -151,6 +260,24 @@ function Circle(ctx, point, line_width, colour) {
         this.super.ctx.stroke();
         this.super.ctx.closePath();
     }
+
+    this.move = function (vector) {
+        this.midpoint.add(vector);
+    }
+
+    this.finalize = function () {
+        const top_left = new Point(
+            this.midpoint.x - this.radius,
+            this.midpoint.y - this.radius,
+        )
+
+        const bottom_right = new Point(
+            this.midpoint.x + this.radius,
+            this.midpoint.y + this.radius,
+        )
+
+        this.super.drawing_frame = new Frame(top_left, bottom_right);
+    }
 }
 
 /**
@@ -169,10 +296,10 @@ function Square(ctx, point, line_width, colour) {
     this.height = 0;
 
     this.set_width = function (width) {
-        this.width = width
+        this.width = width;
     };
     this.set_height = function (height) {
-        this.height = height
+        this.height = height;
     };
 
     /**
@@ -197,6 +324,32 @@ function Square(ctx, point, line_width, colour) {
             this.height
         );
         this.super.ctx.closePath();
+    }
+
+    this.move = function (vector) {
+        this.super.point.add(vector);
+    }
+
+
+    this.finalize = function () {
+        const top_left = new Point(
+            this.super.point.x < this.super.point.x + this.width ?
+                this.super.point.x :
+                this.super.point.x + this.width,
+            this.super.point.y < this.super.point.y + this.height ?
+                this.super.point.y :
+                this.super.point.y + this.height,
+        )
+        const bottom_right = new Point(
+            this.super.point.x > this.super.point.x +this.width ?
+                this.super.point.x :
+                this.super.point.x + this.width,
+            this.super.point.y > this.super.point.y + this.height ?
+                this.super.point.y :
+                this.super.point.y + this.height,
+        )
+
+        this.super.drawing_frame = new Frame(top_left, bottom_right)
     }
 }
 
@@ -243,4 +396,4 @@ function TextDraw(ctx, point, line_width, colour, font, textstring) {
 }
 
 
-export {PenStroke, Line, Circle, Square, Point, TextDraw};
+export {PenStroke, Move, Line, Circle, Square, Point, TextDraw};
