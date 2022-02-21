@@ -37,6 +37,11 @@ const canvas = {
                 canvas.get_mouse_position(event),
                 canvas.drawn_objects
             );
+
+            // If no objects were found.
+            if (!canvas.new_drawing.drawing_object)
+                return;
+
             canvas.element.on('mousemove', canvas.update_drawing);
         }
         else
